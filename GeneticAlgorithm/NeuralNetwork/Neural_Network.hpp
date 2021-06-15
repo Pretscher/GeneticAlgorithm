@@ -92,6 +92,14 @@ public:
 		return this->weightsOH;
 	}
 
+	void setIHWeights(Matrix* newWeights) {
+		this->weightsHI = newWeights;
+	}
+
+	void setHOWeights(Matrix* newWeights) {
+		this->weightsOH = newWeights;
+	}
+
 private:
 	void backpropagation(Matrix* targets, float learningRate) {
 		//output errors

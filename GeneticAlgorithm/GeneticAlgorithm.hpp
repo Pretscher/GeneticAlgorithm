@@ -10,35 +10,115 @@
 float** generation;
 int popSize;
 int dnaSize;
+int outputSize;
 float mutationRate;
 
 NeuralNetwork* nn;
 
 namespace GeneticAlgorithm {
 
+	Matrix** ihWeights;
+	Matrix** hoWeights;
 
 	//init population
-	void init(unsigned int iPopulationSize, unsigned int iDnaSize, float iMutationRate, int iOutputSize) {
+	void init(unsigned int iPopulationSize, float iMutationRate, unsigned int iOutputSize, unsigned int iInputSize, unsigned int iHiddenSize) {
 		popSize = iPopulationSize;
-		dnaSize = iDnaSize;
 		mutationRate = iMutationRate;
-
+		outputSize = iOutputSize;
 		//init generation randomly
 		srand(time(NULL));//Set random seed with current time so its somewhere random
-		for (int i = 0; i < popSize; i++) {
+		for (unsigned int i = 0; i < popSize; i++) {
 			generation[i] = new float[dnaSize];
 			//randomize dna
-			for (int j = 0; j < dnaSize; j++) {
+			for (unsigned int j = 0; j < dnaSize; j++) {
 				generation[i][j] = float(rand()) / float(RAND_MAX);//random num between 0.0 and 1.0
 			}
 		}
 
-		nn = new NeuralNetwork(popSize, dnaSize, iOutputSize);
-
+		nn = new NeuralNetwork(iInputSize, iHiddenSize, iOutputSize);
+		ihWeights = new Matrix* [popSize];
+		hoWeights = new Matrix* [popSize];
+		//randomize all weights
+		for (int i = 0; i < popSize; i++) {
+			ihWeights[i] = new Matrix(iHiddenSize, iInputSize);
+			hoWeights[i] = new Matrix(iOutputSize, iHiddenSize);
+			MatrixMath::randomizeInInterval(ihWeights[i], 0.0f, 1.0f);
+			MatrixMath::randomizeInInterval(hoWeights[i], 0.0f, 1.0f);
+		}
 	}
-	
-	//Biological Model (mutation, recombination, selection) with no supervision
-	void randomBiologicalModel(float iFitnessFunction()) {
 
+
+	//Biological Model (mutation, recombination, selection) with no supervision
+	void randomBiologicalModelForGame(float* getCurrentInputs(), int inputSize, float iFitnessFunction(), bool* iIsFinished, void initGame(), void updateGame(float* iOutPuts, int outputSize)) {
+		//run test with every set of weights and calculate fitness for every member of the population
+		float* fitnesses = new float[popSize];
+		for (int i = 0; i < popSize; i++) {
+			nn->setIHWeights(ihWeights[i]);
+			nn->setHOWeights(hoWeights[i]);
+			initGame();
+			while (*iIsFinished == false) {
+				Matrix* out = nn->feedForward(getCurrentInputs(), inputSize);
+				float* currentOutputs = new float[outputSize];
+				//give back output to game with update function so that it can apply output and go into nex
+				for (int j = 0; j < out->rows; j++) {
+					currentOutputs[j] = out->data[j][0];
+				}
+				updateGame(currentOutputs, outputSize);
+			}
+			//game has finished, evaluate turn
+			fitnesses[i] = iFitnessFunction();
+		}
+		selection(fitnesses);
+		mutation(mutationRate);
+	}
+
+	void selection(float* fitnesses) {
+		Matrix** newWeightsIH = new Matrix*[popSize];
+		Matrix** newWeightsHO = new Matrix*[popSize];
+		float fitnessSum = 0.0f;
+		//calculate fitness sum
+		for (int i = 0; i < popSize; i++) {
+			fitnessSum += fitnesses[i];
+		}
+
+		//for every space in the population, randomly (influenced by fitness) select parent of past generation and clone
+		for (int i = 0; i < popSize; i++) {
+			float runningSum = 0.0f;
+			float randomNum = (float(rand()) / float(RAND_MAX)) * fitnessSum;//number between 0 and fitnessSum
+			for (int j = 0; j < popSize; j++) {		
+				runningSum += fitnesses[j];
+				if (runningSum > randomNum) {
+					newWeightsIH[i] = ihWeights[j];
+					newWeightsHO[i] = hoWeights[j];
+					break;
+				}
+			}
+		}
+	}
+
+	void mutation(float iChance) {
+		if (iChance < 0.0f || iChance > 1.0f) {
+			std::cout << "Mutation rate is not between 0 and 1";
+			std::exit(0);
+		}
+
+		for (int i = 0; i < popSize; i++) {
+			for (int a = 0; a < ihWeights[i]->rows; a++) {
+				for (int b = 0; b < ihWeights[i]->cols; b++) {
+					float randomNum = (float(rand()) / float(RAND_MAX));//random number between 0 and 1
+					if (randomNum < iChance) {
+						ihWeights[i]->data[a][b] = (float(rand()) / float(RAND_MAX));
+					}
+				}
+			}
+			for (int a = 0; a < hoWeights[i]->rows; a++) {
+				for (int b = 0; b < hoWeights[i]->cols; b++) {
+					float randomNum = (float(rand()) / float(RAND_MAX));//random number between 0 and 1
+					if (randomNum < iChance) {
+						hoWeights[i]->data[a][b] = (float(rand()) / float(RAND_MAX));
+					}
+				}
+			}
+		}
 	}
 }
