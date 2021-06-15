@@ -18,15 +18,18 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\FinallyATetrisAI\FinallyATetrisAI\Utils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneticAlgorithm.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\FinallyATetrisAI\FinallyATetrisAI\Utils.hpp">
+    <ClInclude Include="NeuralNetwork\Matrix.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NeuralNetwork\MatrixMath.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NeuralNetwork\Neural_Network.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -139,12 +139,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\FinallyATetrisAI\FinallyATetrisAI\Utils.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\FinallyATetrisAI\FinallyATetrisAI\Utils.hpp" />
     <ClInclude Include="GeneticAlgorithm.hpp" />
+    <ClInclude Include="NeuralNetwork\Matrix.hpp" />
+    <ClInclude Include="NeuralNetwork\MatrixMath.hpp" />
+    <ClInclude Include="NeuralNetwork\Neural_Network.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
