@@ -49,7 +49,7 @@ namespace GeneticAlgorithm {
 
 
 	//Biological Model (mutation, recombination, selection) with no supervision
-	void randomBiologicalModelForGame(float* getCurrentInputs(), int inputSize, float iFitnessFunction(), bool* iIsFinished, void initGame(), void updateGame(float* iOutPuts, int outputSize)) {
+	void randomBiologicalModelForGame(float* getCurrentInputs(), int inputSize, float iFitnessFunction(), bool* iIsFinished, void initGame(), void updateGame(float* iOutPuts, int outputSize), bool recombination) {
 		//run test with every set of weights and calculate fitness for every member of the population
 		float* fitnesses = new float[popSize];
 		for (int i = 0; i < popSize; i++) {
@@ -68,11 +68,16 @@ namespace GeneticAlgorithm {
 			//game has finished, evaluate turn
 			fitnesses[i] = iFitnessFunction();
 		}
-		selection(fitnesses);
+		if (recombination == true) {
+			selectAndRecombinate(fitnesses);
+		}
+		else {
+			selectAndClone(fitnesses);
+		}
 		mutation(mutationRate);
 	}
 
-	void selection(float* fitnesses) {
+	void selectAndClone(float* fitnesses) {
 		Matrix** newWeightsIH = new Matrix*[popSize];
 		Matrix** newWeightsHO = new Matrix*[popSize];
 		float fitnessSum = 0.0f;
@@ -96,6 +101,50 @@ namespace GeneticAlgorithm {
 		}
 	}
 
+	void selectAndRecombinate(float* fitnesses) {
+		Matrix** newWeightsIH = new Matrix * [popSize];
+		Matrix** newWeightsHO = new Matrix * [popSize];
+		float fitnessSum = 0.0f;
+		//calculate fitness sum
+		for (int i = 0; i < popSize; i++) {
+			fitnessSum += fitnesses[i];
+		}
+
+		//for every space in the population, randomly (influenced by fitness) select parent of past generation and recombinate
+		for (int i = 0; i < popSize; i++) {
+			//select parents for recombination
+			int firstParent;
+			int secondParent;
+			for (int cParent = 0; cParent < 2; cParent++) {
+				float runningSum = 0.0f;
+				float randomNum = (float(rand()) / float(RAND_MAX)) * fitnessSum;//number between 0 and fitnessSum
+				for (int j = 0; j < popSize; j++) {
+					runningSum += fitnesses[j];
+					if (runningSum > randomNum) {
+						if (i == 0) {
+							firstParent = j;
+						}
+						if (i == 1) {
+							secondParent = j;
+						}
+						break;
+					}
+				}
+				//RECOMBINATION!!!---------------------------------------------------------------------
+				
+				for (int a = 0; a < ihWeights[0]->rows; a++) {
+					for (int b = 0; b < ihWeights[0]->cols; b++) {
+						ihWeights[i]->data[a][b] = (ihWeights[firstParent]->data[a][b] + ihWeights[secondParent]->data[a][b]) / 2;
+					}
+				}
+				for (int a = 0; a < hoWeights[0]->rows; a++) {
+					for (int b = 0; b < hoWeights[0]->cols; b++) {
+						hoWeights[i]->data[a][b] = (hoWeights[firstParent]->data[a][b] + hoWeights[secondParent]->data[a][b]) / 2;
+					}
+				}
+			}
+		}
+	}
 	void mutation(float iChance) {
 		if (iChance < 0.0f || iChance > 1.0f) {
 			std::cout << "Mutation rate is not between 0 and 1";
