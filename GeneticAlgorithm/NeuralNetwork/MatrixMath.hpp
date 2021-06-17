@@ -139,7 +139,7 @@ namespace MatrixMath {
 	void randomizeInInterval(Matrix* matrix, float lowest, float heighest) {
 		for (int i = 0; i < matrix->rows; i++) {
 			for (int j = 0; j < matrix->cols; j++) {
-				float random = Utils::RandomNumber(lowest, heighest);
+				float random = (float(rand()) / float(RAND_MAX)) * (heighest - lowest) + lowest;
 				matrix->data[i][j] = random;
 			}
 		}
