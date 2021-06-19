@@ -37,8 +37,8 @@ namespace GeneticAlgorithm {
 		for (int i = 0; i < popSize; i++) {
 			ihWeights[i] = new Matrix(iHiddenSize, iInputSize);
 			hoWeights[i] = new Matrix(iOutputSize, iHiddenSize);
-			MatrixMath::randomizeInInterval(ihWeights[i], -1.0f, 1.0f);
-			MatrixMath::randomizeInInterval(hoWeights[i], -1.0f, 1.0f);
+			MatrixMath::randomizeInInterval(ihWeights[i], 0.0f, 1.0f);
+			MatrixMath::randomizeInInterval(hoWeights[i], 0.0f, 1.0f);
 		}
 	}
 
@@ -207,7 +207,9 @@ void mutation(float iChance) {
 			for (int b = 0; b < ihWeights[i]->cols; b++) {
 				float randomNum = (float(rand()) / float(RAND_MAX));//random number between 0 and 1
 				if (randomNum < iChance) {
-					ihWeights[i]->data[a][b] = ((float(rand()) / float(RAND_MAX)) * 2.0f) - 1.0f;
+					ihWeights[i]->data[a][b] += ((float(rand()) / float(RAND_MAX)) * 1.0f) - 0.5f;
+					if (ihWeights[i]->data[a][b] > 1.0f) ihWeights[i]->data[a][b] = 1.0f;
+					if (ihWeights[i]->data[a][b] < -1.0f) ihWeights[i]->data[a][b] = -1.0f;
 				}
 			}
 		}
@@ -215,7 +217,9 @@ void mutation(float iChance) {
 			for (int b = 0; b < hoWeights[i]->cols; b++) {
 				float randomNum = (float(rand()) / float(RAND_MAX));//random number between 0 and 1
 				if (randomNum < iChance) {
-					hoWeights[i]->data[a][b] = ((float(rand()) / float(RAND_MAX)) * 2.0f) - 1.0f;
+					hoWeights[i]->data[a][b] += ((float(rand()) / float(RAND_MAX)) * 1.0f) - 0.5f;
+					if (hoWeights[i]->data[a][b] > 1.0f) hoWeights[i]->data[a][b] = 1.0f;
+					if (hoWeights[i]->data[a][b] < -1.0f) hoWeights[i]->data[a][b] = -1.0f;
 				}
 			}
 		}
