@@ -65,9 +65,11 @@ public:
 		//multiply imputnodes with weights between inputs and hiddens to get hiddenNodes
 		hiddenNodes = MatrixMath::dotProduct(weightsHI, inputNodes, false);
 		//add hiddenBiases to hidden
+		//hiddenNodes = MatrixMath::addMatrices(hiddenNodes, biasesH, true);
 		hiddenNodes = MatrixMath::mapWithSigmoid(hiddenNodes, true);
 
 		outputNodes = MatrixMath::dotProduct(weightsOH, hiddenNodes, false);
+		//outputNodes = MatrixMath::addMatrices(outputNodes, biasesO, true);
 		outputNodes = MatrixMath::mapWithSigmoid(outputNodes, true);
 		return outputNodes;
 	}

@@ -37,8 +37,8 @@ namespace GeneticAlgorithm {
 		for (int i = 0; i < popSize; i++) {
 			ihWeights[i] = new Matrix(iHiddenSize, iInputSize);
 			hoWeights[i] = new Matrix(iOutputSize, iHiddenSize);
-			MatrixMath::randomizeInInterval(ihWeights[i], 0.0f, 1.0f);
-			MatrixMath::randomizeInInterval(hoWeights[i], 0.0f, 1.0f);
+			MatrixMath::randomizeInInterval(ihWeights[i], -1.0f, 1.0f);
+			MatrixMath::randomizeInInterval(hoWeights[i], -1.0f, 1.0f);
 		}
 	}
 
@@ -132,8 +132,9 @@ void selectAndClone(float* fitnesses) {
 	for (int i = 0; i < popSize; i++) {
 		bool reached = false;
 		float runningSum = 0.0f;
-		float randomNum = ((float(rand()) / float(RAND_MAX)) * fitnessSum) - 1.0f;//number between 0 and fitnessSum
+		float randomNum = ((float(rand()) / float(RAND_MAX)) * (fitnessSum - 1.0f));//number between 0 and fitnessSum (-1 because of decimal conversion)
 		for (int j = 0; j < popSize; j++) {
+			float a = fitnesses[j];
 			runningSum += fitnesses[j];
 			if (runningSum >= randomNum) {
 				newWeightsIH[i] = ihWeights[j];
@@ -146,13 +147,13 @@ void selectAndClone(float* fitnesses) {
 			std::cout << "Error in selectAndClone: runningsum couldnt reach randomnum";
 		}
 	}
+	delete ihWeights;
+	delete hoWeights;
 	ihWeights = newWeightsIH;
 	hoWeights = newWeightsHO;
 }
 
 void selectAndRecombinate(float* fitnesses) {
-	Matrix** newWeightsIH = new Matrix * [popSize];
-	Matrix** newWeightsHO = new Matrix * [popSize];
 	float fitnessSum = 0.0f;
 	//calculate fitness sum
 	for (int i = 0; i < popSize; i++) {
@@ -162,34 +163,35 @@ void selectAndRecombinate(float* fitnesses) {
 	//for every space in the population, randomly (influenced by fitness) select parent of past generation and recombinate
 	for (int i = 0; i < popSize; i++) {
 		//select parents for recombination
-		int firstParent;
-		int secondParent;
+		int firstParent = -1;
+		int secondParent = -1;
 		for (int cParent = 0; cParent < 2; cParent++) {
 			float runningSum = 0.0f;
-			float randomNum = (float(rand()) / float(RAND_MAX)) * fitnessSum;//number between 0 and fitnessSum
+			float randomNum = ((float(rand()) / float(RAND_MAX)) * (fitnessSum -1.0f));//number between 0 and fitnessSum
 			for (int j = 0; j < popSize; j++) {
 				runningSum += fitnesses[j];
-				if (runningSum > randomNum) {
-					if (i == 0) {
+				if (runningSum >= randomNum) {
+					if (cParent == 0 && firstParent == -1) {
 						firstParent = j;
 					}
-					if (i == 1) {
+					if (cParent == 1 && secondParent == -1) {
 						secondParent = j;
+						break;
 					}
-					break;
 				}
 			}
-			//RECOMBINATION!!!---------------------------------------------------------------------
+		}
 
-			for (int a = 0; a < ihWeights[0]->rows; a++) {
-				for (int b = 0; b < ihWeights[0]->cols; b++) {
-					ihWeights[i]->data[a][b] = (ihWeights[firstParent]->data[a][b] + ihWeights[secondParent]->data[a][b]) / 2;
-				}
+		//RECOMBINATION!!!---------------------------------------------------------------------
+
+		for (int a = 0; a < ihWeights[0]->rows; a++) {
+			for (int b = 0; b < ihWeights[0]->cols; b++) {
+				ihWeights[i]->data[a][b] = (ihWeights[firstParent]->data[a][b] + ihWeights[secondParent]->data[a][b]) / 2;
 			}
-			for (int a = 0; a < hoWeights[0]->rows; a++) {
-				for (int b = 0; b < hoWeights[0]->cols; b++) {
-					hoWeights[i]->data[a][b] = (hoWeights[firstParent]->data[a][b] + hoWeights[secondParent]->data[a][b]) / 2;
-				}
+		}
+		for (int a = 0; a < hoWeights[0]->rows; a++) {
+			for (int b = 0; b < hoWeights[0]->cols; b++) {
+				hoWeights[i]->data[a][b] = (hoWeights[firstParent]->data[a][b] + hoWeights[secondParent]->data[a][b]) / 2;
 			}
 		}
 	}
