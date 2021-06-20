@@ -51,6 +51,7 @@ public:
 		biasesO = new Matrix(outputNodeCount, 1);//biases to output nodes
 		MatrixMath::randomizeInInterval(biasesO, 0.0f, 1.0f);
 	}
+
 	bool firstIteration = true;
 	Matrix* feedForward(float* imputArray, int inputSize) {
 		if (firstIteration == false) {
