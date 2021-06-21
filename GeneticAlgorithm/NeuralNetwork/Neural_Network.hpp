@@ -66,11 +66,11 @@ public:
 		//multiply imputnodes with weights between inputs and hiddens to get hiddenNodes
 		hiddenNodes = MatrixMath::dotProduct(weightsHI, inputNodes, false);
 		//add hiddenBiases to hidden
-		//hiddenNodes = MatrixMath::addMatrices(hiddenNodes, biasesH, true);
+		hiddenNodes = MatrixMath::addMatrices(hiddenNodes, biasesH, true);
 		hiddenNodes = MatrixMath::mapWithSigmoid(hiddenNodes, true);
 
 		outputNodes = MatrixMath::dotProduct(weightsOH, hiddenNodes, false);
-		//outputNodes = MatrixMath::addMatrices(outputNodes, biasesO, true);
+		outputNodes = MatrixMath::addMatrices(outputNodes, biasesO, true);
 		outputNodes = MatrixMath::mapWithSigmoid(outputNodes, true);
 		return outputNodes;
 	}
@@ -101,6 +101,30 @@ public:
 		this->weightsOH = newWeights;
 	}
 
+	Matrix* getHgradient() {
+		return MatrixMath::mapWithDsigmoid(hiddenNodes, false);
+	}
+
+	Matrix* getOgradient() {
+		return MatrixMath::mapWithDsigmoid(outputNodes, false);
+	}
+
+	Matrix* getBiasesH() {
+		return this->biasesH;
+	}
+
+	Matrix* getBiasesO() {
+		return this->biasesO;
+	}
+
+	void setBiasesH(Matrix* biases) {
+		this->biasesH = biases;
+	}
+
+	void setBiasesO(Matrix* biases) {
+		this->biasesO = biases;
+	}
+
 private:
 	void backpropagation(Matrix* targets, float learningRate) {
 		//output errors
@@ -109,7 +133,7 @@ private:
 
 		Matrix* oGradients = MatrixMath::mapWithDsigmoid(outputNodes, false);
 		oGradients = MatrixMath::elementWiseMult(oGradients, oErrors, true);
-		MatrixMath::multiplyWithNumber(oGradients, learningRate);
+		oGradients = MatrixMath::multiplyWithNumber(oGradients, learningRate, true);
 
 
 		Matrix* hiddenTrans = MatrixMath::transpose(hiddenNodes, false);
@@ -124,7 +148,7 @@ private:
 
 		Matrix* hGradients = MatrixMath::mapWithDsigmoid(hiddenNodes, false);
 		hGradients = MatrixMath::elementWiseMult(hGradients, hErrors, true);
-		MatrixMath::multiplyWithNumber(hGradients, learningRate);
+		hGradients = MatrixMath::multiplyWithNumber(hGradients, learningRate, true);
 
 		Matrix* inputTrans = MatrixMath::transpose(inputNodes, false);
 		Matrix* hiDeltas = MatrixMath::dotProduct(hGradients, inputTrans, false);

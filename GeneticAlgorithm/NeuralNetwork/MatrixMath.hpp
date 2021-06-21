@@ -13,12 +13,17 @@ namespace MatrixMath {
 		}
 	}
 
-	void multiplyWithNumber(Matrix* matrix, float n) {
-		for (int i = 0; i < matrix->rows; i++) {
-			for (int j = 0; j < matrix->cols; j++) {
-				matrix->data[i][j] *= n;
+	Matrix* multiplyWithNumber(Matrix* matrix, float n, bool reassignment) {
+		Matrix* out = new Matrix(matrix->rows, matrix->cols);
+		for (int i = 0; i < out->rows; i++) {
+			for (int j = 0; j < out->cols; j++) {
+				out->data[i][j] = matrix->data[i][j] * n;
 			}
 		}
+		if (reassignment == true) {
+			delete matrix;
+		}
+		return out;
 	}
 
 	void numberDividedByElements(Matrix* matrix, float n){

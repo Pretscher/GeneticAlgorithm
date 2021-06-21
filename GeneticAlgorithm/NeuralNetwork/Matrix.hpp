@@ -13,6 +13,21 @@ public:
 		delete data;
 	}
 
+	Matrix(const Matrix& m) {
+		this->rows = m.rows;
+		this->cols = m.cols;
+		this->data = new float* [m.rows];
+		for (int i = 0; i < m.rows; i++) {
+			this->data[i] = new float[m.cols];
+		}
+
+		for (int i = 0; i < this->rows; i++) {
+			for (int j = 0; j < this->cols; j++) {
+				this->data[i][j] = m.data[i][j];
+			}
+		}
+	}
+
 	Matrix(int rows, int cols) {
 		this->rows = rows;
 		this->cols = cols;
