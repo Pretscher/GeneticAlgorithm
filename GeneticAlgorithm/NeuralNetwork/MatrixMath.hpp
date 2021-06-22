@@ -152,7 +152,8 @@ namespace MatrixMath {
 
 	float sigmoidFunction(float input) {
 		// 1/ (1 + e ^ -x)
-		float result = 1 / (1 + exp(-input));
+		//non bipolar: 1 / (1 + exp(-input));
+		float result = (1 - exp(-input)) / (1 + exp(-input));
 		return result;
 	}
 

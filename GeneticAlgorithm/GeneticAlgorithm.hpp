@@ -11,13 +11,10 @@ int popSize;
 int dnaSize;
 int outputSize;
 float mutationRate;
-float biasWeight;
 
 NeuralNetwork* nn;
 Matrix** ihWeights;
 Matrix** hoWeights;
-Matrix** hBiases;
-Matrix** oBiases;
 
 void selectAndClone(float* fitnesses);
 void selectAndRecombinate(float* fitnesses);
@@ -36,20 +33,14 @@ namespace GeneticAlgorithm {
 		nn = new NeuralNetwork(iInputSize, iHiddenSize, iOutputSize);
 		ihWeights = new Matrix* [popSize];
 		hoWeights = new Matrix* [popSize];
-		hBiases = new Matrix* [popSize];
-		oBiases = new Matrix* [popSize];
 
 		//randomize all weights
 		for (int i = 0; i < popSize; i++) {
 			ihWeights[i] = new Matrix(iHiddenSize, iInputSize);
 			hoWeights[i] = new Matrix(iOutputSize, iHiddenSize);
-			hBiases[i] = new Matrix(iHiddenSize, 1);
-			oBiases[i] = new Matrix(iOutputSize, 1);
 
-			MatrixMath::randomizeInInterval(ihWeights[i], 0.0f, 1.0f);
-			MatrixMath::randomizeInInterval(hoWeights[i], 0.0f, 1.0f);
-			MatrixMath::randomizeInInterval(hBiases[i], 0.0f, 1.0f);
-			MatrixMath::randomizeInInterval(oBiases[i], 0.0f, 1.0f);
+			MatrixMath::randomizeInInterval(ihWeights[i], -1.0f, 1.0f);
+			MatrixMath::randomizeInInterval(hoWeights[i], -1.0f, 1.0f);
 		}
 	}
 
@@ -85,13 +76,12 @@ namespace GeneticAlgorithm {
 		delete[] fitnesses;
 	}
 	*/
-	void randomBiologicalModel(float* currentInputs, int inputSize, float iFitnessFunction(float* outputs, int outputSize), bool recombination, float iBiasWeight) {
-		biasWeight = iBiasWeight;
+	void randomBiologicalModel(float* currentInputs, int inputSize, float iFitnessFunction(float* outputs, int outputSize), bool recombination) {
 		//run test with every set of weights and calculate fitness for every member of the population
 		float* fitnesses = new float[popSize];
 		for (int i = 0; i < popSize; i++) {
 			Matrix* out = tryModel(currentInputs, inputSize, i);
-				
+
 			float* currentOutputs = new float[outputSize];
 			//give back output to game with update function so that it can apply output and go into nex
 			for (int j = 0; j < out->rows; j++) {
@@ -125,31 +115,47 @@ namespace GeneticAlgorithm {
 			}
 		}
 	}
+
+	float testAccuracy(float* inputs, int inputSize, float* targets) {
+		float accuracy = 0.0f;
+		for (int i = 0; i < popSize; i++) {
+			Matrix* out = tryModel(inputs, inputSize, i);
+
+			float* currentOutputs = new float[outputSize];
+			//give back output to game with update function so that it can apply output and go into nex
+			for (int j = 0; j < out->rows; j++) {
+
+				float data = out->data[j][0];
+				float target = targets[j];
+
+				if ((target <= 0.0 && data >= 0.0) || (target >= 0.0 && data <= 0.0)) {
+					target += 1.0;
+					data += 1.0;
+				}
+				if ((target > data && target > 0 && data > 0) || (target < data && target < 0 && data < 0)) { 
+					accuracy += (data / target) / popSize;
+				}
+				else {
+					accuracy += (target / data) / popSize;
+				}
+			}
+			delete[] currentOutputs;
+		}
+		std::cout << "Accuracy: " << accuracy << "\n";
+		return accuracy;
+	}
 }
 
 Matrix* tryModel(float* inputs, int inputSize, int index) {
 	nn->setIHWeights(ihWeights[index]);
 	nn->setHOWeights(hoWeights[index]);
-	Matrix* biasH = MatrixMath::multiplyWithNumber(hBiases[index], biasWeight, false);
-	Matrix* biasO = MatrixMath::multiplyWithNumber(oBiases[index], biasWeight, false);
-	nn->setBiasesH(biasH);
-	nn->setBiasesO(biasO);
-	Matrix* out = nn->feedForward(inputs, inputSize);
 
-	delete hBiases[index];
-	delete oBiases[index];
-	hBiases[index] = nn->getHgradient();
-	oBiases[index] = nn->getOgradient();
-	delete biasH;
-	delete biasO;
-	return out;
+	return nn->feedForward(inputs, inputSize);;
 }
 
 void selectAndClone(float* fitnesses) {
 	Matrix** newWeightsIH = new Matrix* [popSize];
 	Matrix** newWeightsHO = new Matrix* [popSize];
-	Matrix** newHbiases = new Matrix* [popSize];
-	Matrix** newObiases = new Matrix* [popSize];
 
 	float fitnessSum = 0.0f;
 	//calculate fitness sum
@@ -167,8 +173,6 @@ void selectAndClone(float* fitnesses) {
 			if (runningSum >= randomNum) {
 				newWeightsIH[i] = new Matrix(*ihWeights[j]); //copy matrix
 				newWeightsHO[i] = new Matrix(*hoWeights[j]);
-				newHbiases[i] = new Matrix(*hBiases[j]);
-				newObiases[i] = new Matrix(*oBiases[j]);
 				break;
 			}
 		}
@@ -176,26 +180,22 @@ void selectAndClone(float* fitnesses) {
 	for (int i = 0; i < popSize; i++) {
 		delete ihWeights[i];
 		delete hoWeights[i];
-		delete hBiases[i];
-		delete oBiases[i];
 	}
 	delete ihWeights;
 	delete hoWeights;
-	delete hBiases;
-	delete oBiases;
 	ihWeights = newWeightsIH;
 	hoWeights = newWeightsHO;
-	hBiases = newHbiases;
-	oBiases = newObiases;
 }
 
 void selectAndRecombinate(float* fitnesses) {
+	Matrix** newWeightsIH = new Matrix * [popSize];
+	Matrix** newWeightsHO = new Matrix * [popSize];
+
 	float fitnessSum = 0.0f;
 	//calculate fitness sum
 	for (int i = 0; i < popSize; i++) {
 		fitnessSum += fitnesses[i];
 	}
-
 	//for every space in the population, randomly (influenced by fitness) select parent of past generation and recombinate
 	for (int i = 0; i < popSize; i++) {
 		//select parents for recombination
@@ -209,6 +209,7 @@ void selectAndRecombinate(float* fitnesses) {
 				if (runningSum >= randomNum) {
 					if (cParent == 0 && firstParent == -1) {
 						firstParent = j;
+						break;
 					}
 					if (cParent == 1 && secondParent == -1) {
 						secondParent = j;
@@ -219,18 +220,29 @@ void selectAndRecombinate(float* fitnesses) {
 		}
 
 		//RECOMBINATION!!!---------------------------------------------------------------------
+		newWeightsIH[i] = new Matrix(ihWeights[0]->rows, ihWeights[0]->cols);
+		newWeightsHO[i] = new Matrix(hoWeights[0]->rows, hoWeights[0]->cols);
 
 		for (int a = 0; a < ihWeights[0]->rows; a++) {
 			for (int b = 0; b < ihWeights[0]->cols; b++) {
-				ihWeights[i]->data[a][b] = (ihWeights[firstParent]->data[a][b] + ihWeights[secondParent]->data[a][b]) / 2;
+				newWeightsIH[i]->data[a][b] = (ihWeights[firstParent]->data[a][b] + ihWeights[secondParent]->data[a][b]) / 2;
 			}
 		}
 		for (int a = 0; a < hoWeights[0]->rows; a++) {
 			for (int b = 0; b < hoWeights[0]->cols; b++) {
-				hoWeights[i]->data[a][b] = (hoWeights[firstParent]->data[a][b] + hoWeights[secondParent]->data[a][b]) / 2;
+				newWeightsHO[i]->data[a][b] = (hoWeights[firstParent]->data[a][b] + hoWeights[secondParent]->data[a][b]) / 2;
 			}
 		}
 	}
+
+	for (int i = 0; i < popSize; i++) {
+		delete ihWeights[i];
+		delete hoWeights[i];
+	}
+	delete ihWeights;
+	delete hoWeights;
+	ihWeights = newWeightsIH;
+	hoWeights = newWeightsHO;
 }
 
 void mutation(float iChance) {
@@ -244,7 +256,7 @@ void mutation(float iChance) {
 			for (int b = 0; b < ihWeights[0]->cols; b++) {
 				if (randomNum < iChance) {
 					//MatrixMath::randomizeInInterval(ihWeights[i], 0.0f, 1.0f);
-					ihWeights[i]->data[a][b] += ((float(rand()) / float(RAND_MAX)) * 1.0f) - 0.5f;
+					ihWeights[i]->data[a][b] += ((float(rand()) / float(RAND_MAX)) * 2.0f) - 1.0f;
 					if (ihWeights[i]->data[a][b] > 1.0f) ihWeights[i]->data[a][b] = 1.0f;
 					if (ihWeights[i]->data[a][b] < -1.0f) ihWeights[i]->data[a][b] = -1.0f;
 				}
@@ -255,7 +267,7 @@ void mutation(float iChance) {
 			for (int b = 0; b < hoWeights[0]->cols; b++) {
 				if (randomNum < iChance) {
 					//MatrixMath::randomizeInInterval(hoWeights[i], 0.0f, 1.0f);
-					hoWeights[i]->data[a][b] += ((float(rand()) / float(RAND_MAX)) * 1.0f) - 0.5f;
+					hoWeights[i]->data[a][b] += ((float(rand()) / float(RAND_MAX)) * 2.0f) - 1.0f;
 					if (hoWeights[i]->data[a][b] > 1.0f) hoWeights[i]->data[a][b] = 1.0f;
 					if (hoWeights[i]->data[a][b] < -1.0f) hoWeights[i]->data[a][b] = -1.0f;
 				}

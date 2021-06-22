@@ -43,13 +43,13 @@ public:
 		//hiddenOutput Weight-Matrix: rows = output, cols = hidden
 		weightsOH = new Matrix(outputNodeCount, hiddenNodeCount);
 		//randomize between -1 and 1
-		MatrixMath::randomizeInInterval(weightsHI, 0.0f, 1.0f);
-		MatrixMath::randomizeInInterval(weightsOH, 0.0f, 1.0f);
+		MatrixMath::randomizeInInterval(weightsHI, -1.0f, 1.0f);
+		MatrixMath::randomizeInInterval(weightsOH, -1.0f, 1.0f);
 
 		biasesH = new Matrix(hiddenNodeCount, 1);//biases to hidden nodes
-		MatrixMath::randomizeInInterval(biasesH, 0.0f, 1.0f);
+		MatrixMath::randomizeInInterval(biasesH, -1.0f, 1.0f);
 		biasesO = new Matrix(outputNodeCount, 1);//biases to output nodes
-		MatrixMath::randomizeInInterval(biasesO, 0.0f, 1.0f);
+		MatrixMath::randomizeInInterval(biasesO, -1.0f, 1.0f);
 	}
 
 	bool firstIteration = true;
@@ -66,11 +66,11 @@ public:
 		//multiply imputnodes with weights between inputs and hiddens to get hiddenNodes
 		hiddenNodes = MatrixMath::dotProduct(weightsHI, inputNodes, false);
 		//add hiddenBiases to hidden
-		hiddenNodes = MatrixMath::addMatrices(hiddenNodes, biasesH, true);
+		//hiddenNodes = MatrixMath::addMatrices(hiddenNodes, biasesH, true);
 		hiddenNodes = MatrixMath::mapWithSigmoid(hiddenNodes, true);
 
 		outputNodes = MatrixMath::dotProduct(weightsOH, hiddenNodes, false);
-		outputNodes = MatrixMath::addMatrices(outputNodes, biasesO, true);
+	//	outputNodes = MatrixMath::addMatrices(outputNodes, biasesO, true);
 		outputNodes = MatrixMath::mapWithSigmoid(outputNodes, true);
 		return outputNodes;
 	}
