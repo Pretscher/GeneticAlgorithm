@@ -1,6 +1,6 @@
 #pragma once
 #include "Matrix.hpp"
-#include "Utils.hpp"
+
 namespace MatrixMath {
 	//--------------------------------------------------------------
 	//scalar functions

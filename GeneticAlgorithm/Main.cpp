@@ -1,5 +1,5 @@
-#include "GeneticAlgorithm.hpp"
-
+#include "GeneticAlgorithm/GeneticAlgorithm.hpp"
+#include <iostream>
 float* currentTarget;
 
 float fitnessFunction(float* cOutputs, int outputSize) {
@@ -25,7 +25,7 @@ int main() {
 
 //PREFERENCES-----------------------------------------------------------------------------------------------
 
-	int iterations = 10000;
+	int iterations = 1000;
 	int testingIterations = 25;
 	
 	int popSize = 100;

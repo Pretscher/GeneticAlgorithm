@@ -139,10 +139,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GeneticAlgorithm\GeneticAlgorithm.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)</AdditionalIncludeDirectories>
+    </ClCompile>
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GeneticAlgorithm.hpp" />
+    <ClInclude Include="GeneticAlgorithm\GeneticAlgorithm.hpp" />
     <ClInclude Include="NeuralNetwork\Matrix.hpp" />
     <ClInclude Include="NeuralNetwork\MatrixMath.hpp" />
     <ClInclude Include="NeuralNetwork\Neural_Network.hpp" />

@@ -2,10 +2,9 @@
 #include <iostream>
 #define _USE_MATH_DEFINES
 #include <math.h>
-//#include "Renderer.hpp"
-#include <time.h>
 
-#include "NeuralNetwork/Neural_Network.hpp"
+#include "GeneticAlgorithm.hpp"
+#include "NeuralNetwork/Neural_Network.hpp"//for this we added $(ProjectDir) to additional includes for the file.
 
 int popSize;
 int dnaSize;
@@ -20,19 +19,17 @@ void selectAndClone(float* fitnesses);
 void selectAndRecombinate(float* fitnesses);
 void mutation(float iChance);
 Matrix* tryModel(float* inputs, int inputSize, int index);
-namespace GeneticAlgorithm {
-
 
 	//init population
-	void init(unsigned int iPopulationSize, float iMutationRate, unsigned int iOutputSize, unsigned int iInputSize, unsigned int iHiddenSize) {
+	void GeneticAlgorithm::init(unsigned int iPopulationSize, float iMutationRate, unsigned int iOutputSize, unsigned int iInputSize, unsigned int iHiddenSize) {
 		popSize = iPopulationSize;
 		mutationRate = iMutationRate;
 		outputSize = iOutputSize;
 		//init generation randomly
 
 		nn = new NeuralNetwork(iInputSize, iHiddenSize, iOutputSize);
-		ihWeights = new Matrix* [popSize];
-		hoWeights = new Matrix* [popSize];
+		ihWeights = new Matrix * [popSize];
+		hoWeights = new Matrix * [popSize];
 
 		//randomize all weights
 		for (int i = 0; i < popSize; i++) {
@@ -76,7 +73,7 @@ namespace GeneticAlgorithm {
 		delete[] fitnesses;
 	}
 	*/
-	void randomBiologicalModel(float* currentInputs, int inputSize, float iFitnessFunction(float* outputs, int outputSize), bool recombination) {
+	void GeneticAlgorithm::randomBiologicalModel(float* currentInputs, int inputSize, float iFitnessFunction(float* outputs, int outputSize), bool recombination) {
 		//run test with every set of weights and calculate fitness for every member of the population
 		float* fitnesses = new float[popSize];
 		for (int i = 0; i < popSize; i++) {
@@ -101,7 +98,7 @@ namespace GeneticAlgorithm {
 		delete[] fitnesses;
 	}
 
-	void test(float* inputs, int inputSize) {
+	void GeneticAlgorithm::test(float* inputs, int inputSize) {
 		for (int i = 0; i < inputSize; i++) {
 			std::cout << "inputs at " << i << ": " << inputs[i] << "\n";
 		}
@@ -116,7 +113,7 @@ namespace GeneticAlgorithm {
 		}
 	}
 
-	float testAccuracy(float* inputs, int inputSize, float* targets) {
+	float GeneticAlgorithm::testAccuracy(float* inputs, int inputSize, float* targets) {
 		float accuracy = 0.0f;
 		for (int i = 0; i < popSize; i++) {
 			Matrix* out = tryModel(inputs, inputSize, i);
@@ -132,7 +129,7 @@ namespace GeneticAlgorithm {
 					target += 1.0;
 					data += 1.0;
 				}
-				if ((target > data && target > 0 && data > 0) || (target < data && target < 0 && data < 0)) { 
+				if ((target > data && target > 0 && data > 0) || (target < data && target < 0 && data < 0)) {
 					accuracy += (data / target) / popSize;
 				}
 				else {
@@ -144,7 +141,7 @@ namespace GeneticAlgorithm {
 		std::cout << "Accuracy: " << accuracy << "\n";
 		return accuracy;
 	}
-}
+
 
 Matrix* tryModel(float* inputs, int inputSize, int index) {
 	nn->setIHWeights(ihWeights[index]);
@@ -154,8 +151,8 @@ Matrix* tryModel(float* inputs, int inputSize, int index) {
 }
 
 void selectAndClone(float* fitnesses) {
-	Matrix** newWeightsIH = new Matrix* [popSize];
-	Matrix** newWeightsHO = new Matrix* [popSize];
+	Matrix** newWeightsIH = new Matrix * [popSize];
+	Matrix** newWeightsHO = new Matrix * [popSize];
 
 	float fitnessSum = 0.0f;
 	//calculate fitness sum
@@ -203,7 +200,7 @@ void selectAndRecombinate(float* fitnesses) {
 		int secondParent = -1;
 		for (int cParent = 0; cParent < 2; cParent++) {
 			float runningSum = 0.0f;
-			float randomNum = ((float(rand()) / float(RAND_MAX)) * (fitnessSum -1.0f));//number between 0 and fitnessSum
+			float randomNum = ((float(rand()) / float(RAND_MAX)) * (fitnessSum - 1.0f));//number between 0 and fitnessSum
 			for (int j = 0; j < popSize; j++) {
 				runningSum += fitnesses[j];
 				if (runningSum >= randomNum) {
